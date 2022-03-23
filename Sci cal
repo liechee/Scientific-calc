@@ -1,0 +1,185 @@
+// const readlineSync = require('readline-sync')
+// const eqn = readlineSync.question('Enter', (answer: any) => {
+// console.log('the anser is', answer)
+// })
+// //console.log(eqn)
+
+// const expression = `34.19 + 25.7 * (8 - sin(30))`
+// const tokenizer = new InfixTokenizer(expression)
+
+// let token = new InfixTokenizer('((33 - 7) / sin(    90/3 ) + 24.53 ^ 2) * ln(1)')
+
+import InfixTokenizer from "./node_modules/@psse-cpu/tokenizer/dist/InfixTokenizer";
+import Stack from "./stack";
+// import { operator, functions, parenthesis } from "./operation";
+// import * as readlineSync from 'node:readline'
+import { functions, Order } from "./operation";
+import { question } from "readline-sync";
+
+const expression = question("Enter question: ");
+
+const tokenizer = new InfixTokenizer(expression, ['pi', 'sin', 'cos', 'tan', 'ln', 'log', 'sqrt', 'cbrt']);
+
+const operatorStack = new Stack();
+const output_queue = new Stack();
+
+while (tokenizer.hasMoreTokens()) {
+  const token: any = tokenizer.readToken();
+
+  if (!isNaN(token)) {
+    output_queue.push(token);
+  }
+  else if (token === 'pi'){
+    output_queue.push(token)
+  }
+  //operators
+  else if (
+    token === "sin" ||
+    token === "cos" ||
+    token === "tan" ||
+    token === "ln" ||
+    token === "sqrt" ||
+    token === "cbrt" ||
+    token === "log"
+  ) {
+    operatorStack.push(token);
+  } else if (
+    token === "+" ||
+    token === "-" ||
+    token === "*" ||
+    token === "/" ||
+    token === "^"
+  ) {
+    const o1 = Order(token);
+    const o2 = Order(operatorStack.peek());
+
+    if (o2?.precedence !== "undefined" || o2?.associativity !== "undefined") {
+      while (
+        (["+", "-", "*", "/", "^", "("].indexOf(
+          operatorStack.peek() as string
+        ) !== -1 &&
+          // @ts-ignore
+          o2?.precedence > o1?.precedence) ||
+        (o2?.precedence === o1?.precedence && o1?.associativity === "left")
+      ) {
+        output_queue.push(operatorStack.pop());
+
+        break;
+      }
+      operatorStack.push(token);
+    }
+  } else if (token === "(") {
+    //left parenthesis
+    operatorStack.push(token);
+  } else if (token === ")") {
+    //right parenthesis
+    let top = operatorStack.peek();
+    while (top !== "(") {
+      if (!operatorStack.isEmpty()) {
+        output_queue.push(operatorStack.pop());
+      }
+      top = operatorStack.peek();
+    }
+
+    if (operatorStack.peek() === "(") {
+      operatorStack.pop();
+    }
+    if (operatorStack.peek() === functions) {
+      output_queue.push(operatorStack.pop());
+    }
+  }
+}
+
+while (!operatorStack.isEmpty()) {
+  if (operatorStack.peek() === "(") {
+    throw new Error("found left");
+  }
+  output_queue.push(operatorStack.pop());
+}
+
+
+
+let rpn = "";
+const stack = new Stack();
+const answer = new Stack();
+
+while (!output_queue.isEmpty()) {
+  answer.push(output_queue.pop());
+}
+
+while (!answer.isEmpty()) {
+  const rpn: any = answer.pop();
+  
+
+  if (!isNaN(rpn)) {
+    stack.push(Number(rpn));
+  } else if(rpn === 'pi'){
+    stack.push(Math.PI)
+  }
+  if (
+    rpn === "+" ||
+    rpn === "-" ||
+    rpn === "*" ||
+    rpn === "/" ||
+    rpn === "^" ||
+    rpn === "sin" ||
+    rpn === "cos" ||
+    rpn === "tan" ||
+    rpn === "ln" ||
+    rpn === "sqrt" ||
+    rpn === "cbrt" ||
+    rpn === "log"
+  ) {
+    const a: any = stack.pop();
+    const b: any = stack.pop();
+
+    switch (rpn) {
+      case "+":
+        stack.push(b + a);
+        break;
+
+      case "-":
+        stack.push(b - a);
+        break;
+
+      case "/":
+        stack.push(b / a);
+        break;
+
+      case "*":
+        stack.push(b * a);
+        break;
+      case "^":
+        stack.push(b ** a);
+        break;
+
+      case "sin":
+        stack.push(Math.sin(a * (Math.PI / 180))); //degree
+        break;
+
+      case "cos":
+        stack.push(Math.cos(a * (Math.PI / 180)));
+        break;
+
+      case "tan":
+        stack.push(Math.tan(a * (Math.PI / 180)));
+        break;
+
+      case "log":
+        stack.push(Math.log(b) / Math.log(a));
+        break;
+
+      case "sqrt":
+        stack.push(Math.sqrt(a * a + b * b));
+        break;
+      case "cbrt":
+        stack.push(Math.cbrt(a));
+        break;
+      default:
+        break;
+    }
+  }
+  if (answer.isEmpty()) {
+    console.log(stack.pop());
+  }
+}
