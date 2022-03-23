@@ -1,18 +1,6 @@
-// const readlineSync = require('readline-sync')
-// const eqn = readlineSync.question('Enter', (answer: any) => {
-// console.log('the anser is', answer)
-// })
-// //console.log(eqn)
-
-// const expression = `34.19 + 25.7 * (8 - sin(30))`
-// const tokenizer = new InfixTokenizer(expression)
-
-// let token = new InfixTokenizer('((33 - 7) / sin(    90/3 ) + 24.53 ^ 2) * ln(1)')
-
 import InfixTokenizer from "./node_modules/@psse-cpu/tokenizer/dist/InfixTokenizer";
 import Stack from "./stack";
-// import { operator, functions, parenthesis } from "./operation";
-// import * as readlineSync from 'node:readline'
+
 import { functions, Order } from "./operation";
 import { question } from "readline-sync";
 
