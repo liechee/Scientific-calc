@@ -1,0 +1,120 @@
+import InfixTokenizer from "./node_modules/@psse-cpu/tokenizer/dist/InfixTokenizer";
+import Stack from "./stack";
+// import { operator, functions, parenthesis } from "./operation";
+// import * as readlineSync from 'node:readline'
+import { functions, operator, Order } from "./operation";
+import { question } from "readline-sync";
+
+const expression = question('Enter question: ')
+
+const tokenizer = new InfixTokenizer(expression)
+
+
+const operatorStack = new Stack()
+const output_queue = new Stack()
+
+
+while(tokenizer.hasMoreTokens()){
+    const token:any = tokenizer.readToken()
+
+    if (Number(token)){
+        output_queue.push(token)
+    }
+    //operators
+    else if (token === functions ){
+        operatorStack.push(token)
+    }
+    else if(token === operator){
+
+        const o1 = Order(token)
+        const o2 = Order(operatorStack.peek())
+
+
+        while (operatorStack.peek() === o2){
+            if(o2.precedence > o1.precedence || o2.precedence === o1.precedence
+            && o1.associativity ==='left'){
+                output_queue.push(operatorStack.pop())
+                break;
+            }                 
+        }
+        operatorStack.push(token)
+    }
+    else if (token === '('){ //left parenthesis
+        operatorStack.push(token)
+    }
+    else if(token === ')'){ //right parenthesis
+        while(operatorStack.peek()!== '('){
+            if(!operatorStack.isEmpty()){
+               output_queue.push(operatorStack.pop())
+            }
+        }
+        if(operatorStack.peek() === '('){
+            operatorStack.pop()
+        }
+        if (operatorStack.peek() === functions ||
+            operatorStack.peek() === operator){
+           output_queue.push(operatorStack.pop())
+        }
+        output_queue.push(operatorStack.pop())
+    }
+        
+    while (!tokenizer.hasMoreTokens){
+        if (operatorStack.peek()!== '('){
+            output_queue.push(operatorStack.pop())
+
+        }
+    }
+    output_queue;
+}
+console.log(output_queue)
+
+let rpn = ''
+const stack = new Stack<number>()
+
+function solve(output_queue:any){
+    while(!output_queue.isEmpty){
+        const rpn:any = output_queue.pop()
+        
+            if (Number(rpn)){
+                stack.push(rpn)
+            }else if(rpn === operator || rpn === functions){
+                const a:any = output_queue.pop()
+                const b:any = output_queue.pop()
+
+                if(rpn === '+'){
+                    stack.push( b + a)
+                }
+                else if (rpn === '-'){
+                    stack.push( b - a)
+                }
+                else if (rpn === '*'){
+                    stack.push( b * a)
+                }
+                else if (rpn === '/'){
+                    stack.push( b / a)
+                }
+                else if (rpn === '^'){
+                    stack.push( b ** a)
+                }
+                else if (rpn === 'sin'){ //radian
+                    stack.push(Math.sin(a))
+                }
+                else if (rpn === 'cos'){ //radian
+                    stack.push(Math.cos(a))
+                }
+                else if (rpn === 'tan'){//radian
+                    stack.push(Math.tan(a))
+                }
+                else if (rpn === 'log'){
+                    stack.push(Math.log(a))
+                }
+                else if (rpn === 'sqrt'){
+                    stack.push(Math.sqrt(a))
+                }
+                // stack.push(rpn)
+            }
+            else if (output_queue.isEmpty()){
+                stack.pop()
+            }     
+    }
+}
